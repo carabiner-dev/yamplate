@@ -47,7 +47,7 @@ func Unmarshal(in []byte, out interface{}, optsFncs ...DecoderOption) error {
 	case "3":
 		return yaml3.Unmarshal([]byte(replacedin), out)
 	default:
-		return fmt.Errorf("Invalid yaml parser version (need to be 2 or 3)")
+		return fmt.Errorf("invalid yaml parser version (need to be 2 or 3)")
 	}
 }
 
@@ -102,7 +102,7 @@ func replaceAndDecode(z any, yd yamlDecoder, pts *decoderIoPointers, opts *Optio
 				return
 			}
 		}
-		pts.writer.Close()
+		pts.writer.Close() //nolint:errcheck,gosec
 	}()
 
 	if err := yd.Decode(z); err != nil {
@@ -142,7 +142,7 @@ func extractLineVariables(line string) []varSub {
 	}
 
 	res := variableRegex.FindAllStringSubmatch(line, -1)
-	ret := []varSub{}
+	ret := make([]varSub, 0, len(res))
 	for _, m := range res {
 		ret = append(ret, varSub{
 			Name:    m[1],
