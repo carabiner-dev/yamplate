@@ -116,6 +116,7 @@ func TestDecodeDeduplicatesErrors(t *testing.T) {
 }
 
 func TestVariableExtract(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name   string
 		line   string
@@ -160,7 +161,7 @@ func TestReplaceSusbstitutions(t *testing.T) {
 			t.Parallel()
 			line, errs := replaceSusbstitutions(tc.line, tc.vars, tc.subs)
 			if tc.mustErr {
-				require.True(t, len(errs) > 0)
+				require.NotEmpty(t, errs)
 				return
 			}
 
