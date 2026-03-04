@@ -6,6 +6,7 @@ package yamlplate
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -101,6 +102,17 @@ lana: ${LINE2}
 			tc.eval(t, a)
 		})
 	}
+}
+
+func TestDecodeDeduplicatesErrors(t *testing.T) {
+	t.Parallel()
+	yaml := "---\na: ${ORG}\nb: ${ORG}\nc: ${ORG}\nd: ${ORG}\n"
+	dec := NewDecoder(bytes.NewReader([]byte(yaml)))
+	dec.Options = Options{Variables: map[string]string{}}
+	a := map[string]any{}
+	err := dec.Decode(&a)
+	require.Error(t, err)
+	require.Equal(t, 1, strings.Count(err.Error(), `no variable substitution defined for "ORG"`))
 }
 
 func TestVariableExtract(t *testing.T) {

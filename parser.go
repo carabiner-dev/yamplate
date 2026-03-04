@@ -37,7 +37,7 @@ func Unmarshal(in []byte, out interface{}, optsFncs ...DecoderOption) error {
 		replacedin += line + "\n"
 	}
 
-	if err := errors.Join(errs...); err != nil {
+	if err := errors.Join(dedupeErrors(errs)...); err != nil {
 		return err
 	}
 
@@ -109,7 +109,24 @@ func replaceAndDecode(z any, yd yamlDecoder, pts *decoderIoPointers, opts *Optio
 		varErrs = append(varErrs, err)
 	}
 
-	return errors.Join(varErrs...)
+	return errors.Join(dedupeErrors(varErrs)...)
+}
+
+// dedupeErrors returns a deduplicated list of errors based on their message.
+func dedupeErrors(errs []error) []error {
+	seen := map[string]bool{}
+	result := []error{}
+	for _, err := range errs {
+		if err == nil {
+			continue
+		}
+		msg := err.Error()
+		if !seen[msg] {
+			seen[msg] = true
+			result = append(result, err)
+		}
+	}
+	return result
 }
 
 type varSub struct {
