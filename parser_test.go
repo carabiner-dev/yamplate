@@ -4,6 +4,7 @@
 package yamlplate
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -46,6 +47,13 @@ func TestUnmarshal(t *testing.T) {
 			[]DecoderOption{WithVariables(map[string]string{"MOAR_TEST": "YES"})},
 			true, // This one errs
 		},
+		{
+			"missing-value-deduped",
+			"---\nid: ${ORG}\nn: ${ORG}\nsub: ${ORG}\nsub2: ${ORG}",
+			nil,
+			[]DecoderOption{WithVariables(map[string]string{})},
+			true, // This one errs
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -54,6 +62,10 @@ func TestUnmarshal(t *testing.T) {
 			err := Unmarshal([]byte(tc.data), &sut, tc.optFuncs...)
 			if tc.mustErr {
 				require.Error(t, err)
+				if tc.name == "missing-value-deduped" {
+					// Verify the error for ORG appears only once despite 4 uses
+					require.Equal(t, 1, strings.Count(err.Error(), "no variable substitution defined for \"ORG\""))
+				}
 				return
 			}
 			require.NoError(t, err)
