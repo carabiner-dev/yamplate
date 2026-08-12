@@ -15,9 +15,9 @@ import (
 	yaml3 "gopkg.in/yaml.v3"
 )
 
-var variableRegex *regexp.Regexp
-
-const variableRegexCode = `\$\{\s*([-A-Z0-9a-z_]+)\s*\}`
+// variableRegex is compiled at initialization: a lazy nil-check assignment
+// would be a data race when decoders run in concurrent goroutines.
+var variableRegex = regexp.MustCompile(`\$\{\s*([-A-Z0-9a-z_]+)\s*\}`)
 
 // Unmarshal emulates the yaml Unmarshal method but adding support for
 // template substitutions.
@@ -137,10 +137,6 @@ type varSub struct {
 // extractLineVariables reads a string and locates the template variable
 // substitutions a list of variable names and the string to replace.
 func extractLineVariables(line string) []varSub {
-	if variableRegex == nil {
-		variableRegex = regexp.MustCompile(variableRegexCode)
-	}
-
 	res := variableRegex.FindAllStringSubmatch(line, -1)
 	ret := make([]varSub, 0, len(res))
 	for _, m := range res {
