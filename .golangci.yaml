@@ -60,7 +60,7 @@ linters:
     - godox
     - goheader
     - gomoddirectives
-    - gomodguard
+    - gomodguard_v2
     - goprintffuncname
     - gosec
     - gosmopolitan
@@ -178,3 +178,11 @@ linters:
       require-explanation: false
       # Enable to require nolint directives to mention the specific linter being suppressed. Default is false.
       require-specific: true
+  exclusions:
+    rules:
+      # Table-driven tests lean on repeated literal fixtures (case names,
+      # variable names, expected values); hoisting them into constants
+      # hurts readability.
+      - path: _test\.go
+        linters:
+          - goconst
